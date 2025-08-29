@@ -34,6 +34,7 @@ Asegúrate de tener instalado lo siguiente antes de proceder con el despliegue:
     ```
 3.  Despliega la infraestructura en tu cuenta de AWS:
     ```bash
+    cdk bootstrap
     cdk deploy
     ```
 Al finalizar el despliegue, la URL de tu API se mostrará en la terminal.
