@@ -29,19 +29,40 @@ export const handler = async (event: any) => {
 
     const { Attributes } = await ddbDocClient.send(updateCommand);
 
+    console.log(JSON.stringify({
+      action: "updateTodo",
+      status: "not_found",
+      todoId: todoId,
+      message: "Tarea no encontrada para actualizar"
+    }));
+
     if (!Attributes) {
       return {
         statusCode: 404,
         body: JSON.stringify({ message: "Tarea no encontrada para actualizar" }),
       };
     }
-    
+
+    console.log(JSON.stringify({
+      action: "updateTodo",
+      status: "success",
+      todoId: todoId,
+      message: "Tarea actualizada correctamente"
+    }));
+
     return {
       statusCode: 200,
       body: JSON.stringify(Attributes),
     };
   } catch (error: unknown) {
-    console.error(error);
+
+    console.error(JSON.stringify({
+      action: "updateTodo",
+      status: "error",
+      message: "Error al actualizar la tarea",
+      error: error instanceof Error ? error.message : String(error)
+    }));
+
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Error interno del servidor' }),

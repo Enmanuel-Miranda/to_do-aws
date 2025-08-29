@@ -12,12 +12,27 @@ export const handler =async (event: any) => {
     
     const { Items } = await ddbDocClient.send(scanCommand);
     
+    console.log(JSON.stringify({ 
+      action: "listTodos",
+      status: "success",
+      count: Items?.length || 0,
+      message: "Tareas listadas"
+    }));
+
     return {
       statusCode: 200,
       body: JSON.stringify(Items),
     };
     
   } catch (error: unknown) {
+    //log de error 
+    console.error(JSON.stringify({ 
+      action: "listTodos",
+      status: "error",
+      message: "Error al listar las tareas",
+      error: error instanceof Error ? error.message : String(error)
+    }));
+
     return {
       statusCode: 500,
       body: JSON.stringify({ 

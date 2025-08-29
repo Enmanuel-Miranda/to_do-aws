@@ -19,6 +19,14 @@ export const handler = async (event: any) => {
 
     const { Item } = await ddbDocClient.send(getCommand);
 
+
+    console.log(JSON.stringify({
+      action: "getTodo",
+      status: "not_found",
+      todoId: todoId,
+      message: "Tarea no encontrada"
+    }));
+
     if (!Item) {
       return {
         statusCode: 404,
@@ -26,11 +34,27 @@ export const handler = async (event: any) => {
       };
     }
 
+    console.log(JSON.stringify({
+      action: "getTodo",
+      status: "success",
+      todoId: todoId,
+      message: "Tarea obtenida correctamente"
+    }));
+
     return {
       statusCode: 200,
       body: JSON.stringify(Item),
     };
+
   } catch (error: unknown) {
+
+    console.error(JSON.stringify({
+      action: "getTodo",
+      status: "error",
+      message: "Error al obtener la tarea",
+      error: error instanceof Error ? error.message : String(error)
+    }));
+
     console.error(error);
     return {
       statusCode: 500,

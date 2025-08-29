@@ -19,12 +19,26 @@ export const handler = async (event: any) => {
 
     await ddbDocClient.send(deleteCommand);
     
+    console.log(JSON.stringify({
+      action: "deleteTodo",
+      status: "success",
+      todoId: todoId,
+      message: "Tarea eliminada correctamente"
+    }));
+
     return {
       statusCode: 204,
       body: JSON.stringify({ message: "Tarea eliminada correctamente" }),
     };
   } catch (error: unknown) {
-    console.error(error);
+    
+    console.error(JSON.stringify({
+      action: "deleteTodo",
+      status: "error",
+      message: "Error al eliminar la tarea",
+      error: error instanceof Error ? error.message : String(error)
+    }));
+
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Error interno del servidor' }),
