@@ -1,49 +1,72 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
+//Importaciones necesarias
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 
+//este archivo construye
 export class ToDoApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // base de datos
-    const tableTask = new dynamodb.Table(this,'TableTask', {
-      partitionKey:{ name:'taskId', type: dynamodb.AttributeType.STRING},
-      tableName: 'Task',
+    // base de datos de dynamodb
+    const todosTable = new dynamodb.Table(this, 'TodosTable',{
+      partitionKey: {name: 'todoId', type: dynamodb.AttributeType.STRING},
+      tableName: 'Todos',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-    })
-
-    // funciones lambda
-    const createTaskFunction = new lambda.Function(this,'CreateTaskFunction',{
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'create-task.handler',
-      code: lambda.Code.fromAsset('lib/lambda'),
-      environment: {TABLE_NAME: tableTask.tableName},
     });
-    const getTaskFunction =new lambda.Function(this,'GetTaskFunction',{
+
+    //Funciones lambda
+    const createTodoFunction = new lambda.Function(this, 'CreateTodoFunction',{
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'get-task.handler',
+      handler: 'create-todo.handler',
       code: lambda.Code.fromAsset('lib/lambda'),
-      environment: {TABLE_NAME: tableTask.tableName},
+      environment: {TABLE_NAME: todosTable.tableName}
+    });
+    const listTodosFunction = new lambda.Function(this,'ListTodosFunction',{
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'list-todos.handler',
+      code: lambda.Code.fromAsset('lib/lambda'),
+      environment: {TABLE_NAME: todosTable.tableName}
+    });
+    const getTodoFunction = new lambda.Function(this,'GetTodoFunction',{
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'get-todo.handler',
+      code: lambda.Code.fromAsset('lib/lambda'),
+      environment: {TABLE_NAME: todosTable.tableName},
+    });
+    const updateTodoFunction = new lambda.Function(this,'UpdateTodoFunction',{
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'update-todo.handler',
+      code: lambda.Code.fromAsset('lib/lambda'),
+      environment: {TABLE_NAME: todosTable.tableName}
+    });
+    const deleteTodoFunction = new lambda.Function(this,'DeleteTodoFunction',{
+      runtime : lambda.Runtime.NODEJS_18_X,
+      handler: 'delete-todo.handler',
+      code: lambda.Code.fromAsset('lib/lambda'),
+      environment: {TABLE_NAME: todosTable.tableName}
     });
 
     // permisos
-    tableTask.grantWriteData(createTaskFunction);
-    tableTask.grantReadData(getTaskFunction);
+    todosTable.grantWriteData(createTodoFunction);
+    todosTable.grantReadData(listTodosFunction);
+    todosTable.grantReadData(getTodoFunction);
+    todosTable.grantReadWriteData(updateTodoFunction);
+    todosTable.grantWriteData(deleteTodoFunction);
 
-    //La puerta de entrada de la api gateway
-    const api = new apigateway.RestApi(this, 'TaskApi');
-    const taskResource = api.root.addResource('task');
-    const taskIdResource = taskResource.addResource('{id}');
+    //api gateway puerta de entrada
+    const api = new apigateway.RestApi(this,'TodoApi');
+    const todosResource = api.root.addResource('todos');
+    const todoIdResource = todosResource.addResource('{id}');
 
-    taskResource.addMethod('POST', new apigateway.LambdaIntegration(createTaskFunction));
-    taskResource.addMethod('GET', new apigateway.LambdaIntegration(getTaskFunction));
-    
-
+    todosResource.addMethod('POST', new apigateway.LambdaIntegration(createTodoFunction));
+    todosResource.addMethod('GET', new apigateway.LambdaIntegration(listTodosFunction));
+    todoIdResource.addMethod('GET', new apigateway.LambdaIntegration(getTodoFunction));
+    todoIdResource.addMethod('PUT', new apigateway.LambdaIntegration(updateTodoFunction));
+    todoIdResource.addMethod('DELETE', new apigateway.LambdaIntegration(deleteTodoFunction));
 
   }
 }
